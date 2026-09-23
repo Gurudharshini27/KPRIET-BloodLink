@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Project Umbrella | Find Donors</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f8fa;
+            color: #101828;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #667085;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e4e7ec;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        input:read-only {
+            background: #f2f4f7;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 13px 22px;
+            border: none;
+            border-radius: 8px;
+            background: #c1121f;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #970d18;
+        }
+
+        button:disabled {
+            background: #98a2b3;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .donor {
+            border: 1px solid #e4e7ec;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 15px;
+            background: #fafafa;
+        }
+
+        .donor h3 {
+            margin-bottom: 10px;
+        }
+
+        .donor p {
+            margin: 6px 0;
+            color: #475467;
+        }
+
+        .blood {
+            color: #c1121f;
+            font-weight: bold;
+        }
+
+        .no-donors {
+            margin-top: 15px;
+            color: #667085;
+        }
+
+        .request-info {
+            margin-top: 10px;
+            color: #667085;
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- =============================== -->
+    <!-- PAGE HEADER -->
+    <!-- =============================== -->
+
+    <h1>🩸 Find Matching Donors</h1>
+
+    <p class="subtitle">
+        Find available donors for a submitted blood request.
+    </p>
+
+
+    <!-- =============================== -->
+    <!-- REQUEST SECTION -->
+    <!-- =============================== -->
+
+    <div class="card">
+
+        <label for="requestId">
+            Blood Request ID
+        </label>
+
+        <input
+            type="text"
+            id="requestId"
+            placeholder="Request ID will appear automatically"
+            readonly
+        >
+
+        <p class="request-info">
+            The request ID is automatically received from your blood request.
+        </p>
+
+        <br>
+
+        <button id="findDonorsButton">
+            Find Matching Donors
+        </button>
+
+        <div id="status"></div>
+
+    </div>
+
+
+    <!-- =============================== -->
+    <!-- DONOR RESULTS -->
+    <!-- =============================== -->
+
+    <div class="card">
+
+        <h2>
+            Matching Donors
+        </h2>
+
+        <div id="donorList">
+
+            <p class="no-donors">
+                Searching for matching donors...
+            </p>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<!-- =============================== -->
+<!-- FIREBASE MATCHING SCRIPT -->
+<!-- =============================== -->
+
+<script type="module" src="./js/matching.js"></script>
+
+
+<!-- =============================== -->
+<!-- PAGE LOGIC -->
+<!-- =============================== -->
+
+<script type="module">
+
+    // =================================
+    // GET HTML ELEMENTS
+    // =================================
+
+    const requestIdInput =
+        document.getElementById("requestId");
+
+    const button =
+        document.getElementById("findDonorsButton");
+
+    const status =
+        document.getElementById("status");
+
+    const donorList =
+        document.getElementById("donorList");
+
+
+    // =================================
+    // GET REQUEST ID FROM URL
+    // =================================
+
+    const urlParams =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const requestId =
+        urlParams.get("requestId");
+
+
+    console.log(
+        "Request ID received:",
+        requestId
+    );
+
+
+    // =================================
+    // CHECK REQUEST ID
+    // =================================
+
+    if (!requestId) {
+
+        status.textContent =
+            "❌ No blood request ID was received.";
+
+        donorList.innerHTML = `
+            <p class="no-donors">
+                No blood request was selected.
+                Please submit a blood request first.
+            </p>
+        `;
+
+        button.disabled = true;
+
+    } else {
+
+        // =================================
+        // DISPLAY REQUEST ID
+        // =================================
+
+        requestIdInput.value =
+            requestId;
+
+
+        // =================================
+        // AUTOMATICALLY FIND DONORS
+        // =================================
+
+        findDonors(requestId);
+
+    }
+
+
+    // =================================
+    // FIND DONORS FUNCTION
+    // =================================
+
+    async function findDonors(id) {
+
+        status.textContent =
+            "🔍 Searching for matching donors...";
+
+        donorList.innerHTML = `
+            <p class="no-donors">
+                Please wait...
+            </p>
+        `;
+
+
+        try {
+
+            // Wait until matching.js
+            // provides the function
+
+            const donors =
+                await window.findMatchingDonors(id);
+
+
+            console.log(
+                "Donors returned:",
+                donors
+            );
+
+
+            // =================================
+            // NO DONORS
+            // =================================
+
+            if (!donors || donors.length === 0) {
+
+                status.textContent =
+                    "Search completed.";
+
+                donorList.innerHTML = `
+                    <p class="no-donors">
+                        ❌ No matching available donors found.
+                    </p>
+                `;
+
+                return;
+            }
+
+
+            // =================================
+            // DONORS FOUND
+            // =================================
+
+            status.textContent =
+                donors.length +
+                " matching donor(s) found.";
+
+
+            donorList.innerHTML = "";
+
+
+            // =================================
+            // CREATE DONOR CARDS
+            // =================================
+
+            donors.forEach(function (donor) {
+
+
+                const donorCard =
+                    document.createElement("div");
+
+
+                donorCard.className =
+                    "donor";
+
+
+                donorCard.innerHTML = `
+
+                    <h3>
+                        ${donor.name}
+                    </h3>
+
+                    <p>
+                        Blood Group:
+                        <span class="blood">
+                            ${donor.bloodGroup}
+                        </span>
+                    </p>
+
+                    <p>
+                        📞 Phone:
+                        ${donor.phone || "Not available"}
+                    </p>
+
+                    <p>
+                        📧 Email:
+                        ${donor.email || "Not available"}
+                    </p>
+
+                    <p>
+                        🏫 Department:
+                        ${donor.department || "Not available"}
+                    </p>
+
+                    <p>
+                        🎓 Year:
+                        ${donor.year || "Not available"}
+                    </p>
+
+                    <p>
+                        🩸 Last Donation:
+                        ${donor.lastDonationDate || "Not available"}
+                    </p>
+
+                `;
+
+
+                donorList.appendChild(
+                    donorCard
+                );
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Matching error:",
+                error
+            );
+
+
+            status.textContent =
+                "❌ Error while finding donors.";
+
+
+            donorList.innerHTML = `
+
+                <p class="no-donors">
+
+                    ${error.message}
+
+                </p>
+
+            `;
+
+        }
+
+    }
+
+
+    // =================================
+    // BUTTON CLICK
+    // =================================
+
+    button.addEventListener(
+        "click",
+        function () {
+
+            if (!requestId) {
+
+                status.textContent =
+                    "❌ No request ID available.";
+
+                return;
+
+            }
+
+
+            findDonors(requestId);
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>
