@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodLink Notifications</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #b71c1c;
+        }
+
+        #notifications {
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .notification {
+            background: white;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .notification h3 {
+            margin: 0 0 8px;
+        }
+
+        .notification p {
+            margin: 5px 0;
+        }
+
+        .accept-btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .decline-btn {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔔 BloodLink Notifications</h1>
+
+    <div id="notifications">
+        <p>Loading notifications...</p>
+    </div>
+
+    <script type="module" src="js/notifications.js"></script>
+    <script type="module" src="js/responses.js"></script>
+
+</body>
+</html>
